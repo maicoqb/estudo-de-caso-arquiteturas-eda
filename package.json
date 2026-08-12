@@ -1,0 +1,9 @@
+{
+  "name": "estudo-de-caso-arquiteturas-eda",
+  "version": "0.0.0",
+  "private": true,
+  "devDependencies": {
+    "@nx/nest": "^23.1.1",
+    "nx": "23.1.1"
+  }
+}

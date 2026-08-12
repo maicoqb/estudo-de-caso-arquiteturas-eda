@@ -22,4 +22,21 @@ Event-Driven Architecture (EDA) é um estilo arquitetural onde os componentes de
 
 ## Como Rodar
 
-Cada padrão terá seu próprio docker compose. Instruções específicas estarão no documento de cada arquitetura.
+### Infra base
+
+```bash
+docker compose -f docker-compose.base.yaml up -d
+```
+
+Sobe PostgreSQL, RabbitMQ, Grafana, Tempo e PgAdmin.
+
+## Acessos
+
+| Serviço | URL | Credenciais |
+|---------|-----|-------------|
+| RabbitMQ Management | http://localhost:15672 | guest / guest |
+| Grafana | http://localhost:3000 | admin / admin |
+| PgAdmin | http://localhost:5050 | admin@admin.com / admin |
+| PostgreSQL | localhost:5432 | admin / admin (db: eda) |
+
+> No PgAdmin, para conectar no PostgreSQL use o host `postgres` (nome do service no docker compose).

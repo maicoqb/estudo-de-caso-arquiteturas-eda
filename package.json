@@ -2,6 +2,9 @@
   "name": "estudo-de-caso-arquiteturas-eda",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "base": "docker compose -f docker-compose.base.yaml up -d"
+  },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
     "@nestjs/schematics": "^11.0.0",

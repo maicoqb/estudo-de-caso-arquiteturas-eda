@@ -1,4 +1,7 @@
+
 # EDA Fire-and-Forget
+
+> 📐 Veja a [arquitetura técnica do sistema](./architecture.md) utilizado para demonstrar este padrão.
 
 EDA Fire-and-Forget é o padrão mais simples de arquitetura orientada a eventos.
 

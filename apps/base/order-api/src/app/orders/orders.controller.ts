@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Logger } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './create-order.dto';
 
@@ -10,9 +10,6 @@ export class OrdersController {
   @HttpCode(HttpStatus.ACCEPTED)
   async create(@Body() dto: CreateOrderDto) {
     const order = await this.ordersService.create(dto);
-
-    // TODO: publicar evento order.created no RabbitMQ
-
     return { orderId: order.id, status: order.status };
   }
 }

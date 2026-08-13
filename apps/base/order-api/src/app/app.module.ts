@@ -4,6 +4,7 @@ import { HealthController } from './health.controller';
 import { Order } from './orders/order.entity';
 import { OrdersController } from './orders/orders.controller';
 import { OrdersService } from './orders/orders.service';
+import { BrokerService } from './broker/broker.service';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { OrdersService } from './orders/orders.service';
     TypeOrmModule.forFeature([Order]),
   ],
   controllers: [HealthController, OrdersController],
-  providers: [OrdersService],
+  providers: [OrdersService, BrokerService],
 })
 export class AppModule {}

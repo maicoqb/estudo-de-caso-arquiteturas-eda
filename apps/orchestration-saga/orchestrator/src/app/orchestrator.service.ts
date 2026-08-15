@@ -106,6 +106,10 @@ export class OrchestratorService implements OnModuleInit {
     if (saga.state === 'COMPLETED' || saga.state === 'FAILED') {
       this.sagas.delete(orderId);
     }
+
+    if (saga.state === 'FAILED') {
+      throw new Error(`Saga failed for order ${orderId}`);
+    }
   }
 
   private async sendCommand(command: string, data: any) {

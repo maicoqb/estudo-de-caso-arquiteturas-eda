@@ -38,7 +38,7 @@ sequenceDiagram
     participant Broker
     participant Inventory
     participant Payment
-    participant Notification
+    participant Shipping
 
     Cliente->>OrderAPI: POST /orders
     OrderAPI->>Broker: publica "order.created"
@@ -52,13 +52,14 @@ sequenceDiagram
     Payment->>Payment: processa pagamento
     Payment->>Broker: publica "payment.processed"
 
-    Broker->>Notification: entrega "payment.processed"
-    Notification->>Notification: envia e-mail ao cliente
+    Broker->>Shipping: entrega "payment.processed"
+    Shipping->>Shipping: agenda envio
+    Shipping->>Broker: publica "shipping.scheduled"
 ```
 
-### Cenário de Erro com Compensação
+### Cenário de Erro — Payment falha
 
-Pagamento falha, mas agora o sistema reage: o Payment publica um evento de falha e o Inventory escuta para desfazer a reserva.
+Pagamento falha e o Inventory recebe o evento de falha para liberar o estoque.
 
 ```mermaid
 sequenceDiagram
@@ -67,6 +68,38 @@ sequenceDiagram
     participant Broker
     participant Inventory
     participant Payment
+
+    Cliente->>OrderAPI: POST /orders
+    OrderAPI->>Broker: publica "order.created"
+    OrderAPI-->>Cliente: 202 Accepted
+
+    Broker->>Inventory: entrega "order.created"
+    Inventory->>Inventory: reserva estoque
+    Inventory->>Broker: publica "inventory.reserved"
+
+    Broker->>Payment: entrega "inventory.reserved"
+    Payment->>Payment: ❌ falha (cartão recusado)
+    Payment->>Broker: publica "payment.failed"
+
+    Broker->>Inventory: entrega "payment.failed"
+    Inventory->>Inventory: ⬅️ libera estoque (compensação)
+    Inventory->>Broker: publica "inventory.released"
+
+    Note over Inventory: Estoque liberado automaticamente
+```
+
+### Cenário de Erro — Shipping falha (compensação em cascata)
+
+Shipping falha após pagamento aprovado. Payment escuta a falha e faz refund, Inventory escuta o refund e libera o estoque.
+
+```mermaid
+sequenceDiagram
+    participant Cliente
+    participant OrderAPI
+    participant Broker
+    participant Inventory
+    participant Payment
+    participant Shipping
 
     Cliente->>OrderAPI: POST /orders
     OrderAPI->>Broker: publica "order.created"
@@ -78,40 +111,35 @@ sequenceDiagram
 
     Broker->>Payment: entrega "inventory.reserved"
     Payment->>Payment: processa pagamento
-    Payment->>Payment: ❌ falha (cartão recusado)
-    Payment->>Broker: publica "payment.failed"
+    Payment->>Broker: publica "payment.processed"
 
-    Broker->>Inventory: entrega "payment.failed"
+    Broker->>Shipping: entrega "payment.processed"
+    Shipping->>Shipping: ❌ falha (endereço inválido)
+    Shipping->>Broker: publica "shipping.failed"
+
+    Broker->>Payment: entrega "shipping.failed"
+    Payment->>Payment: ⬅️ refund (compensação)
+    Payment->>Broker: publica "payment.refunded"
+
+    Broker->>Inventory: entrega "payment.refunded"
     Inventory->>Inventory: ⬅️ libera estoque (compensação)
     Inventory->>Broker: publica "inventory.released"
 
+    Note over Payment: Pagamento estornado automaticamente
     Note over Inventory: Estoque liberado automaticamente
-    Note over Cliente: Pode ser notificado da falha
 ```
 
 ### Cenário de Falha na Compensação
 
-Se a compensação também falhar (Inventory não consegue liberar o estoque), a mensagem vai para a DLQ. O sistema fica inconsistente e precisa de intervenção manual — similar ao fire-and-forget, mas com a diferença de que a tentativa de compensação foi feita.
+Se a compensação também falhar (ex: Inventory não consegue liberar o estoque), a mensagem vai para a DLQ. O sistema fica inconsistente e precisa de intervenção manual.
 
 ```mermaid
 sequenceDiagram
-    participant Cliente
-    participant OrderAPI
     participant Broker
     participant Inventory
     participant Payment
     participant DLQ
 
-    Cliente->>OrderAPI: POST /orders
-    OrderAPI->>Broker: publica "order.created"
-    OrderAPI-->>Cliente: 202 Accepted
-
-    Broker->>Inventory: entrega "order.created"
-    Inventory->>Inventory: reserva estoque
-    Inventory->>Broker: publica "inventory.reserved"
-
-    Broker->>Payment: entrega "inventory.reserved"
-    Payment->>Payment: ❌ falha (cartão recusado)
     Payment->>Broker: publica "payment.failed"
 
     Broker->>Inventory: entrega "payment.failed"

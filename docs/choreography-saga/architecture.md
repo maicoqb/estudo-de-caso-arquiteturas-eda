@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O sistema simula um fluxo de pedido de compra com compensação automática. Quando um passo falha, o serviço anterior escuta o evento de falha e desfaz sua operação. Não existe orquestrador — cada serviço sabe reagir a sucessos e falhas.
+O sistema simula um fluxo de pedido de compra com compensação automática distribuída. Quando um passo falha, os serviços anteriores escutam eventos de falha e desfazem suas operações em cascata. Não existe orquestrador — cada serviço sabe reagir a sucessos e falhas.
 
 ```mermaid
 graph LR
@@ -16,9 +16,15 @@ graph LR
     RabbitMQ -->|inventory.reserved| Payment
     Payment -->|payment.processed| RabbitMQ
     Payment -->|payment.failed| RabbitMQ
+    Payment -->|payment.refunded| RabbitMQ
+
+    RabbitMQ -->|payment.processed| Shipping
+    Shipping -->|shipping.scheduled| RabbitMQ
+    Shipping -->|shipping.failed| RabbitMQ
 
     RabbitMQ -->|payment.failed| Inventory
-    RabbitMQ -->|payment.processed| Notification
+    RabbitMQ -->|payment.refunded| Inventory
+    RabbitMQ -->|shipping.failed| Payment
 
     RabbitMQ -.->|falhas após nack| DLQ[(DLQ)]
 ```
@@ -28,9 +34,9 @@ graph LR
 | Serviço | Responsabilidade | Publica | Consome |
 |---------|-----------------|---------|---------|
 | **Order API** | Recebe pedido via HTTP e publica evento | `order.created` | — |
-| **Inventory** | Reserva/libera estoque | `inventory.reserved`, `inventory.released` | `order.created`, `payment.failed` |
-| **Payment** | Processa pagamento | `payment.processed`, `payment.failed` | `inventory.reserved` |
-| **Notification** | Notifica o cliente | — | `payment.processed` |
+| **Inventory** | Reserva/libera estoque | `inventory.reserved`, `inventory.released` | `order.created`, `payment.failed`, `payment.refunded` |
+| **Payment** | Processa/estorna pagamento | `payment.processed`, `payment.failed`, `payment.refunded` | `inventory.reserved`, `shipping.failed` |
+| **Shipping** | Agenda/cancela envio | `shipping.scheduled`, `shipping.failed` | `payment.processed` |
 
 ## Fluxo de Eventos
 
@@ -43,15 +49,24 @@ graph LR
 | `choreography-saga.inventory.exchange` | topic | `inventory.released` | (observabilidade) |
 | `choreography-saga.payment.exchange` | topic | `payment.processed` | `choreography-saga.payment.processed.queue` |
 | `choreography-saga.payment.exchange` | topic | `payment.failed` | `choreography-saga.payment.failed.queue` |
+| `choreography-saga.payment.exchange` | topic | `payment.refunded` | `choreography-saga.payment.refunded.queue` |
+| `choreography-saga.shipping.exchange` | topic | `shipping.scheduled` | (observabilidade) |
+| `choreography-saga.shipping.exchange` | topic | `shipping.failed` | `choreography-saga.shipping.failed.queue` |
 
 ### Compensação
 
-- **Payment falha** → publica `payment.failed`
-- **Inventory escuta `payment.failed`** → libera estoque (compensação) → publica `inventory.released`
+**Payment falha:**
+- Payment publica `payment.failed`
+- Inventory escuta → libera estoque → publica `inventory.released`
+
+**Shipping falha:**
+- Shipping publica `shipping.failed`
+- Payment escuta → faz refund → publica `payment.refunded`
+- Inventory escuta → libera estoque → publica `inventory.released`
 
 ### Dead Letter Queue
 
-Mesma mecânica do fire-and-forget: mensagens que falham no handler vão para `<queue>.dlq` via `<queue>.dlx`.
+Mesma mecânica do fire-and-forget: mensagens que falham no handler (erro técnico, não de negócio) vão para `<queue>.dlq` via `<queue>.dlx`.
 
 ## Estrutura do Projeto
 
@@ -61,8 +76,8 @@ apps/
     order-api/             ← API HTTP (compartilhada)
   choreography-saga/
     inventory-worker/      ← Consumer RabbitMQ (reserva + compensação)
-    payment-worker/        ← Consumer RabbitMQ (pagamento + evento de falha)
-    notification-worker/   ← Consumer RabbitMQ
+    payment-worker/        ← Consumer RabbitMQ (pagamento + refund + evento de falha)
+    shipping-worker/       ← Consumer RabbitMQ (envio + evento de falha)
 
 docs/
   choreography-saga/

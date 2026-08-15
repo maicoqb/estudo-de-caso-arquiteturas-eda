@@ -21,7 +21,15 @@ export class InventoryService implements OnModuleInit {
       'choreography-saga.payment.exchange',
       'choreography-saga.payment.failed.queue',
       'payment.failed',
-      (event) => this.handlePaymentFailed(event),
+      (event) => this.handleCompensation(event),
+    );
+
+    // Escuta evento de refund do payment (compensação em cascata do shipping)
+    await this.brokerService.subscribe(
+      'choreography-saga.payment.exchange',
+      'choreography-saga.payment.refunded.queue',
+      'payment.refunded',
+      (event) => this.handleCompensation(event),
     );
   }
 
@@ -48,7 +56,7 @@ export class InventoryService implements OnModuleInit {
     });
   }
 
-  private async handlePaymentFailed(event: any) {
+  private async handleCompensation(event: any) {
     const { orderId, items } = event.data;
     this.logger.log(`⬅️ Compensating: releasing inventory for order ${orderId}`);
 

@@ -15,6 +15,14 @@ export class PaymentService implements OnModuleInit {
       'inventory.reserved',
       (event) => this.handleInventoryReserved(event),
     );
+
+    // Escuta evento de falha do shipping para compensar (refund)
+    await this.brokerService.subscribe(
+      'choreography-saga.shipping.exchange',
+      'choreography-saga.shipping.failed.queue',
+      'shipping.failed',
+      (event) => this.handleShippingFailed(event),
+    );
   }
 
   private async handleInventoryReserved(event: any) {
@@ -24,7 +32,6 @@ export class PaymentService implements OnModuleInit {
     if (customerId === 'error-payment') {
       this.logger.error(`Payment declined for order ${orderId}: card refused`);
 
-      // Publica evento de falha para acionar compensação
       await this.brokerService.publish('choreography-saga.payment.exchange', 'payment.failed', {
         specversion: '1.0',
         id: `pay-fail-${orderId}`,
@@ -46,6 +53,21 @@ export class PaymentService implements OnModuleInit {
       id: `pay-${orderId}`,
       source: 'choreography-saga-payment-worker',
       type: 'payment.processed',
+      time: new Date().toISOString(),
+      datacontenttype: 'application/json',
+      data: event.data,
+    });
+  }
+
+  private async handleShippingFailed(event: any) {
+    const { orderId } = event.data;
+    this.logger.log(`⬅️ Compensating: refunding payment for order ${orderId}`);
+
+    await this.brokerService.publish('choreography-saga.payment.exchange', 'payment.refunded', {
+      specversion: '1.0',
+      id: `pay-refund-${orderId}`,
+      source: 'choreography-saga-payment-worker',
+      type: 'payment.refunded',
       time: new Date().toISOString(),
       datacontenttype: 'application/json',
       data: event.data,

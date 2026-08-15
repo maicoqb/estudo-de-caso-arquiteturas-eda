@@ -4,6 +4,9 @@
  */
 
 import 'dotenv/config';
+import { initTracing } from '@libs/tracing';
+initTracing('order-api');
+
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';

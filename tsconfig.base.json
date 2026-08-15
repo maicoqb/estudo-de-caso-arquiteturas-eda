@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "strict": false,
     "paths": {
-      "@libs/broker": ["./libs/broker/src/index.ts"]
+      "@libs/broker": ["./libs/broker/src/index.ts"],
+      "@libs/tracing": ["./libs/tracing/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

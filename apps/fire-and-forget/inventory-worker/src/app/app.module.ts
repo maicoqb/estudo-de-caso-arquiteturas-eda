@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { BrokerModule } from './broker/broker.module';
+import { BrokerModule } from '@libs/broker';
 import { InventoryService } from './inventory.service';
 
 @Module({

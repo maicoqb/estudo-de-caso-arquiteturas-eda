@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { BrokerService } from './broker/broker.service';
+import { BrokerService } from '@libs/broker';
 
 @Injectable()
 export class InventoryService implements OnModuleInit {

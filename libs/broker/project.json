@@ -1,0 +1,9 @@
+{
+  "name": "broker",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/broker/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project broker --web",
+  "targets": {}
+}

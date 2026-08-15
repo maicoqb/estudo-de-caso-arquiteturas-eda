@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { BrokerModule } from '@libs/broker';
 import { HealthController } from './health.controller';
 import { Order } from './orders/order.entity';
 import { OrdersController } from './orders/orders.controller';
 import { OrdersService } from './orders/orders.service';
-import { BrokerService } from './broker/broker.service';
 
 @Module({
   imports: [
@@ -19,8 +19,11 @@ import { BrokerService } from './broker/broker.service';
       synchronize: true,
     }),
     TypeOrmModule.forFeature([Order]),
+    BrokerModule.forRoot({
+      url: process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672',
+    }),
   ],
   controllers: [HealthController, OrdersController],
-  providers: [OrdersService, BrokerService],
+  providers: [OrdersService],
 })
 export class AppModule {}

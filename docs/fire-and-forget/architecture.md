@@ -14,18 +14,14 @@ graph LR
     Payment -->|payment.processed| RabbitMQ
     RabbitMQ -->|payment.processed| Notification
 
-    RabbitMQ -.->|falhas após retry| DLQ[(DLQ)]
-
-    OrderAPI --- PostgreSQL[(PostgreSQL)]
-    Inventory --- PostgreSQL
-    Payment --- PostgreSQL
+    RabbitMQ -.->|falhas após nack| DLQ[(DLQ)]
 ```
 
 ## Serviços
 
 | Serviço | Responsabilidade | Publica | Consome |
 |---------|-----------------|---------|---------|
-| **Order API** | Recebe pedido via HTTP, persiste e publica evento | `order.created` | — |
+| **Order API** | Recebe pedido via HTTP e publica evento | `order.created` | — |
 | **Inventory** | Reserva estoque do produto | `inventory.reserved` | `order.created` |
 | **Payment** | Processa pagamento do pedido | `payment.processed` | `inventory.reserved` |
 | **Notification** | Envia notificação ao cliente (e-mail/push) | — | `payment.processed` |
@@ -36,16 +32,21 @@ graph LR
 
 | Exchange | Tipo | Routing Key | Fila destino |
 |----------|------|-------------|--------------|
-| `order.events` | topic | `order.created` | `order.created.queue` |
-| `inventory.events` | topic | `inventory.reserved` | `inventory.reserved.queue` |
-| `payment.events` | topic | `payment.processed` | `payment.processed.queue` |
+| `order.exchange` | topic | `order.created` | `fire-and-forget.order.created.queue` |
+| `fire-and-forget.inventory.exchange` | topic | `inventory.reserved` | `fire-and-forget.inventory.reserved.queue` |
+| `fire-and-forget.payment.exchange` | topic | `payment.processed` | `fire-and-forget.payment.processed.queue` |
 
 ### Dead Letter Queue
 
-Cada fila é configurada com:
-- `x-dead-letter-exchange`: aponta para a DLQ exchange
-- Retry máximo via política do RabbitMQ (ex: 3 tentativas)
-- Mensagens que excedem o retry são movidas para a respectiva DLQ
+Cada fila é configurada automaticamente com:
+- Uma DLX exchange (`<queue>.dlx`) do tipo fanout
+- Uma DLQ fila (`<queue>.dlq`) bindada na DLX
+- Quando o handler falha e faz `nack`, a mensagem é redirecionada para a DLQ
+
+## Observabilidade
+
+- **RabbitMQ Management** (http://localhost:15672) — estado das filas, mensagens na DLQ, consumers conectados
+- **Grafana + Tempo** (http://localhost:3000) — tracing distribuído mostrando o fluxo do pedido entre serviços
 
 ## Estrutura do Projeto
 
@@ -57,6 +58,17 @@ apps/
     inventory-worker/      ← Consumer RabbitMQ
     payment-worker/        ← Consumer RabbitMQ
     notification-worker/   ← Consumer RabbitMQ
+
+libs/
+  broker/                  ← BrokerModule/BrokerService (conexão, publish, subscribe, DLQ)
+  tracing/                 ← Setup OpenTelemetry (initTracing)
+
+scripts/
+  create-order.sh                    ← Cenário feliz
+  create-order-inventory-error.sh    ← Erro no Inventory
+  create-order-payment-error.sh      ← Erro no Payment
+  create-order-notification-error.sh ← Erro no Notification
+  create-order-all.sh                ← Executa todos os cenários
 
 docs/
   fire-and-forget/

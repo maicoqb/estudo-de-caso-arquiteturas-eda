@@ -16,7 +16,7 @@ export class OrdersService {
       0,
     );
 
-    await this.brokerService.publish('fire-and-forget.order.exchange', 'order.created', {
+    await this.brokerService.publish('order.exchange', 'order.created', {
       specversion: '1.0',
       id: orderId,
       source: 'order-api',

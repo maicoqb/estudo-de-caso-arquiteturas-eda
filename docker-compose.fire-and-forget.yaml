@@ -1,0 +1,42 @@
+services:
+  order-api:
+    build:
+      context: .
+      dockerfile: apps/base/order-api/Dockerfile
+    env_file:
+      - .env.fire-and-forget
+    ports:
+      - "3001:3001"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  inventory-worker:
+    build:
+      context: .
+      dockerfile: apps/fire-and-forget/inventory-worker/Dockerfile
+    env_file:
+      - .env.fire-and-forget
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  payment-worker:
+    build:
+      context: .
+      dockerfile: apps/fire-and-forget/payment-worker/Dockerfile
+    env_file:
+      - .env.fire-and-forget
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  notification-worker:
+    build:
+      context: .
+      dockerfile: apps/fire-and-forget/notification-worker/Dockerfile
+    env_file:
+      - .env.fire-and-forget
+    depends_on:
+      rabbitmq:
+        condition: service_healthy

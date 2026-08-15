@@ -10,7 +10,7 @@ export class InventoryService implements OnModuleInit {
   async onModuleInit() {
     // Binding explícito (exchange/queue/routingKey) para fins didáticos do estudo de EDA
     await this.brokerService.subscribe(
-      'fire-and-forget.order.exchange',
+      'order.exchange',
       'fire-and-forget.order.created.queue',
       'order.created',
       (event) => this.handleOrderCreated(event),

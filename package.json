@@ -10,6 +10,8 @@
     "fire-and-forget:down": "docker compose -f docker-compose.base.yaml -f docker-compose.fire-and-forget.yaml down -v",
     "fire-and-forget:serve": "npx nx run-many --target=serve --projects=order-api,fire-and-forget-inventory-worker,fire-and-forget-payment-worker,fire-and-forget-notification-worker --parallel=4",
     "fire-and-forget:create-orders": "bash scripts/fire-and-forget-create-orders.sh",
+    "choreography-saga:up": "docker compose -f docker-compose.base.yaml -f docker-compose.choreography-saga.yaml up -d",
+    "choreography-saga:down": "docker compose -f docker-compose.base.yaml -f docker-compose.choreography-saga.yaml down -v",
     "choreography-saga:serve": "npx nx run-many --target=serve --projects=order-api,choreography-saga-inventory-worker,choreography-saga-payment-worker,choreography-saga-shipping-worker --parallel=4",
     "choreography-saga:create-orders": "bash scripts/choreography-saga-create-orders.sh"
   },

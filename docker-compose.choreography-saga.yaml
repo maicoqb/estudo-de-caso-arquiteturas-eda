@@ -1,0 +1,42 @@
+services:
+  order-api:
+    build:
+      context: .
+      dockerfile: apps/base/order-api/Dockerfile
+    env_file:
+      - .env.choreography-saga
+    ports:
+      - "3001:3001"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  choreography-saga-inventory-worker:
+    build:
+      context: .
+      dockerfile: apps/choreography-saga/inventory-worker/Dockerfile
+    env_file:
+      - .env.choreography-saga
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  choreography-saga-payment-worker:
+    build:
+      context: .
+      dockerfile: apps/choreography-saga/payment-worker/Dockerfile
+    env_file:
+      - .env.choreography-saga
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  choreography-saga-shipping-worker:
+    build:
+      context: .
+      dockerfile: apps/choreography-saga/shipping-worker/Dockerfile
+    env_file:
+      - .env.choreography-saga
+    depends_on:
+      rabbitmq:
+        condition: service_healthy

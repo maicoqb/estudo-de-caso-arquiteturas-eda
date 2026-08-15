@@ -9,7 +9,6 @@ export class OrdersController {
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
   async create(@Body() dto: CreateOrderDto) {
-    const order = await this.ordersService.create(dto);
-    return { orderId: order.id, status: order.status };
+    return this.ordersService.create(dto);
   }
 }

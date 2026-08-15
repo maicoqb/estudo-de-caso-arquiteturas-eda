@@ -1,20 +1,4 @@
 services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
-      POSTGRES_DB: ${POSTGRES_DB:-eda}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
   rabbitmq:
     image: rabbitmq:3-management
     environment:
@@ -48,17 +32,3 @@ services:
       - ./docker/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     depends_on:
       - tempo
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASS:-admin}
-    ports:
-      - "5050:80"
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-volumes:
-  postgres_data:

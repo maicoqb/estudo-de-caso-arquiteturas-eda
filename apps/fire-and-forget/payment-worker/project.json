@@ -1,5 +1,5 @@
 {
-  "name": "payment-worker",
+  "name": "fire-and-forget-payment-worker",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/fire-and-forget/payment-worker/src",
   "projectType": "application",
@@ -55,15 +55,15 @@
       "defaultConfiguration": "development",
       "dependsOn": ["build"],
       "options": {
-        "buildTarget": "payment-worker:build",
+        "buildTarget": "fire-and-forget-payment-worker:build",
         "runBuildTargetDependencies": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "payment-worker:build:development"
+          "buildTarget": "fire-and-forget-payment-worker:build:development"
         },
         "production": {
-          "buildTarget": "payment-worker:build:production"
+          "buildTarget": "fire-and-forget-payment-worker:build:production"
         }
       }
     }

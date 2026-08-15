@@ -9,7 +9,7 @@
     "create-orders": "bash scripts/create-order-all.sh",
     "fire-and-forget:up": "docker compose -f docker-compose.base.yaml -f docker-compose.fire-and-forget.yaml up -d",
     "fire-and-forget:down": "docker compose -f docker-compose.base.yaml -f docker-compose.fire-and-forget.yaml down -v",
-    "fire-and-forget:serve": "npx nx run-many --target=serve --projects=order-api,inventory-worker,payment-worker,notification-worker --parallel=4"
+    "fire-and-forget:serve": "npx nx run-many --target=serve --projects=order-api,fire-and-forget-inventory-worker,fire-and-forget-payment-worker,fire-and-forget-notification-worker --parallel=4"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",

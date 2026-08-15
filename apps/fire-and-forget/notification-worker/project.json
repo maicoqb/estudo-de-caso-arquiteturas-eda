@@ -1,5 +1,5 @@
 {
-  "name": "notification-worker",
+  "name": "fire-and-forget-notification-worker",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/fire-and-forget/notification-worker/src",
   "projectType": "application",
@@ -55,15 +55,15 @@
       "defaultConfiguration": "development",
       "dependsOn": ["build"],
       "options": {
-        "buildTarget": "notification-worker:build",
+        "buildTarget": "fire-and-forget-notification-worker:build",
         "runBuildTargetDependencies": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "notification-worker:build:development"
+          "buildTarget": "fire-and-forget-notification-worker:build:development"
         },
         "production": {
-          "buildTarget": "notification-worker:build:production"
+          "buildTarget": "fire-and-forget-notification-worker:build:production"
         }
       }
     }

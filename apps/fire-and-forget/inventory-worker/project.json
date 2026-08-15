@@ -1,5 +1,5 @@
 {
-  "name": "inventory-worker",
+  "name": "fire-and-forget-inventory-worker",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/fire-and-forget/inventory-worker/src",
   "projectType": "application",
@@ -55,15 +55,15 @@
       "defaultConfiguration": "development",
       "dependsOn": ["build"],
       "options": {
-        "buildTarget": "inventory-worker:build",
+        "buildTarget": "fire-and-forget-inventory-worker:build",
         "runBuildTargetDependencies": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "inventory-worker:build:development"
+          "buildTarget": "fire-and-forget-inventory-worker:build:development"
         },
         "production": {
-          "buildTarget": "inventory-worker:build:production"
+          "buildTarget": "fire-and-forget-inventory-worker:build:production"
         }
       }
     }

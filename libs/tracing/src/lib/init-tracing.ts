@@ -12,6 +12,7 @@ export function initTracing(serviceName: string) {
     instrumentations: [
       getNodeAutoInstrumentations({
         '@opentelemetry/instrumentation-fs': { enabled: false },
+        '@opentelemetry/instrumentation-amqplib': { enabled: false },
       }),
     ],
   });

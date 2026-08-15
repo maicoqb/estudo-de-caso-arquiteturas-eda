@@ -1,4 +1,5 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { DynamicModule, Logger, Module } from '@nestjs/common';
+import * as amqplib from 'amqplib';
 import { BrokerService } from './broker.service';
 
 interface BrokerModuleOptions {
@@ -15,9 +16,10 @@ export class BrokerModule {
         {
           provide: BrokerService,
           useFactory: async () => {
-            const broker = new BrokerService(options.url);
-            await broker.connect();
-            return broker;
+            const connection = await amqplib.connect(options.url);
+            const channel = await connection.createChannel();
+            Logger.log('Connected to RabbitMQ', 'BrokerModule');
+            return new BrokerService(connection, channel);
           },
         },
       ],

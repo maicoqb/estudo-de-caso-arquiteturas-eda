@@ -3,8 +3,34 @@ import { BrokerService } from '@libs/broker';
 
 type SagaState =
   | 'RESERVING_INVENTORY'
+  | 'PROCESSING_PAYMENT'
+  | 'RELEASING_INVENTORY'
   | 'COMPLETED'
   | 'FAILED';
+
+interface Transition {
+  nextState: SagaState;
+  command?: string;
+}
+
+const SAGA_FLOW: Record<string, Transition> = {
+  'order.created': {
+    nextState: 'RESERVING_INVENTORY',
+    command: 'reserve-inventory',
+  },
+  'inventory.reserved': {
+    nextState: 'PROCESSING_PAYMENT',
+    command: 'process-payment',
+  },
+  'payment.processed': { nextState: 'COMPLETED' },
+
+  'inventory.reserve-failed': { nextState: 'FAILED' },
+  'payment.failed': {
+    nextState: 'RELEASING_INVENTORY',
+    command: 'release-inventory',
+  },
+  'inventory.released': { nextState: 'FAILED' },
+};
 
 interface Saga {
   orderId: string;
@@ -36,49 +62,36 @@ export class OrchestratorService implements OnModuleInit {
   }
 
   private async handleEvent(event: any) {
-    const type = event.type;
-    const data = event.data;
-    const orderId = data.orderId;
+    const { type } = event;
+    const { orderId } = event.data;
 
-    switch (type) {
-      case 'order.created':
-        await this.startSaga(orderId, data);
-        break;
-      case 'inventory.reserved':
-        await this.onInventoryReserved(orderId);
-        break;
-      case 'inventory.reserve-failed':
-        await this.onInventoryReserveFailed(orderId);
-        break;
-      default:
-        this.logger.warn(`Unknown event type: ${type}`);
+    const transition = SAGA_FLOW[type];
+    if (!transition) {
+      this.logger.warn(`No transition defined for event: ${type}`);
+      return;
     }
-  }
 
-  private async startSaga(orderId: string, data: any) {
-    this.logger.log(`[${orderId}] Saga started → reserving inventory`);
-    this.sagas.set(orderId, { orderId, state: 'RESERVING_INVENTORY', data });
-    await this.sendCommand('reserve-inventory', data);
-  }
+    if (type === 'order.created') {
+      this.sagas.set(orderId, {
+        orderId,
+        state: 'RESERVING_INVENTORY',
+        data: event.data,
+      });
+    }
 
-  private async onInventoryReserved(orderId: string) {
     const saga = this.sagas.get(orderId);
     if (!saga) return;
 
-    this.logger.log(`[${orderId}] Inventory reserved → saga completed ✅`);
-    saga.state = 'COMPLETED';
-    this.sagas.delete(orderId);
+    saga.state = transition.nextState;
+    this.logger.log(`[${orderId}] ${type} → ${saga.state}`);
 
-    // TODO: próximo passo será process-payment
-  }
+    if (transition.command) {
+      await this.sendCommand(transition.command, saga.data);
+    }
 
-  private async onInventoryReserveFailed(orderId: string) {
-    const saga = this.sagas.get(orderId);
-    if (!saga) return;
-
-    this.logger.log(`[${orderId}] Inventory reserve failed → saga failed ❌`);
-    saga.state = 'FAILED';
-    this.sagas.delete(orderId);
+    if (saga.state === 'COMPLETED' || saga.state === 'FAILED') {
+      this.sagas.delete(orderId);
+    }
   }
 
   private async sendCommand(command: string, data: any) {

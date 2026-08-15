@@ -27,8 +27,20 @@ export class BrokerService implements OnModuleDestroy {
     routingKey: string,
     handler: (event: any) => Promise<void> | void,
   ) {
+    const dlxExchange = `${queue}.dlx`;
+    const dlqQueue = `${queue}.dlq`;
+
+    // Configura Dead Letter Queue
+    await this.channel.assertExchange(dlxExchange, 'fanout', { durable: true });
+    await this.channel.assertQueue(dlqQueue, { durable: true });
+    await this.channel.bindQueue(dlqQueue, dlxExchange, '');
+
+    // Configura fila principal com DLQ
     await this.channel.assertExchange(exchange, 'topic', { durable: true });
-    await this.channel.assertQueue(queue, { durable: true });
+    await this.channel.assertQueue(queue, {
+      durable: true,
+      deadLetterExchange: dlxExchange,
+    });
     await this.channel.bindQueue(queue, exchange, routingKey);
 
     this.channel.consume(queue, async (msg) => {
@@ -43,7 +55,7 @@ export class BrokerService implements OnModuleDestroy {
       }
     });
 
-    this.logger.log(`Listening on queue: ${queue} [${routingKey}]`);
+    this.logger.log(`Listening on queue: ${queue} [${routingKey}] (DLQ: ${dlqQueue})`);
   }
 
   async publish(exchange: string, routingKey: string, payload: object) {

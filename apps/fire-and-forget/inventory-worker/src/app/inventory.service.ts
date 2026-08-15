@@ -22,6 +22,9 @@ export class InventoryService implements OnModuleInit {
     this.logger.log(`Reserving inventory for order ${orderId}`);
 
     for (const item of items) {
+      if (item.productId === 'out-of-stock') {
+        throw new Error(`Product ${item.productId} is out of stock`);
+      }
       this.logger.log(`  Reserved ${item.quantity}x product ${item.productId}`);
     }
 

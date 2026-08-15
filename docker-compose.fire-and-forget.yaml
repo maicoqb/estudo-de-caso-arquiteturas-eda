@@ -2,7 +2,10 @@ services:
   order-api:
     build:
       context: .
-      dockerfile: apps/base/order-api/Dockerfile
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: order-api
+        APP_PATH: apps/base/order-api
     env_file:
       - .env.fire-and-forget
     ports:
@@ -11,30 +14,39 @@ services:
       rabbitmq:
         condition: service_healthy
 
-  inventory-worker:
+  fire-and-forget-inventory-worker:
     build:
       context: .
-      dockerfile: apps/fire-and-forget/inventory-worker/Dockerfile
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: fire-and-forget-inventory-worker
+        APP_PATH: apps/fire-and-forget/inventory-worker
     env_file:
       - .env.fire-and-forget
     depends_on:
       rabbitmq:
         condition: service_healthy
 
-  payment-worker:
+  fire-and-forget-payment-worker:
     build:
       context: .
-      dockerfile: apps/fire-and-forget/payment-worker/Dockerfile
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: fire-and-forget-payment-worker
+        APP_PATH: apps/fire-and-forget/payment-worker
     env_file:
       - .env.fire-and-forget
     depends_on:
       rabbitmq:
         condition: service_healthy
 
-  notification-worker:
+  fire-and-forget-notification-worker:
     build:
       context: .
-      dockerfile: apps/fire-and-forget/notification-worker/Dockerfile
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: fire-and-forget-notification-worker
+        APP_PATH: apps/fire-and-forget/notification-worker
     env_file:
       - .env.fire-and-forget
     depends_on:

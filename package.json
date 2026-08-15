@@ -13,7 +13,11 @@
     "choreography-saga:up": "docker compose -f docker-compose.base.yaml -f docker-compose.choreography-saga.yaml up -d",
     "choreography-saga:down": "docker compose -f docker-compose.base.yaml -f docker-compose.choreography-saga.yaml down -v",
     "choreography-saga:serve": "npx nx run-many --target=serve --projects=order-api,choreography-saga-inventory-worker,choreography-saga-payment-worker,choreography-saga-shipping-worker --parallel=4",
-    "choreography-saga:create-orders": "bash scripts/choreography-saga-create-orders.sh"
+    "choreography-saga:create-orders": "bash scripts/choreography-saga-create-orders.sh",
+    "orchestration-saga:up": "docker compose -f docker-compose.base.yaml -f docker-compose.orchestration-saga.yaml up -d",
+    "orchestration-saga:down": "docker compose -f docker-compose.base.yaml -f docker-compose.orchestration-saga.yaml down -v",
+    "orchestration-saga:serve": "npx nx run-many --target=serve --projects=order-api,orchestration-saga-orchestrator,orchestration-saga-inventory-worker,orchestration-saga-payment-worker,orchestration-saga-shipping-worker --parallel=5",
+    "orchestration-saga:create-orders": "bash scripts/orchestration-saga-create-orders.sh"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",

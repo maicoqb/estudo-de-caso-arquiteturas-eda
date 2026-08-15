@@ -2,7 +2,10 @@ services:
   order-api:
     build:
       context: .
-      dockerfile: apps/base/order-api/Dockerfile
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: order-api
+        APP_PATH: apps/base/order-api
     env_file:
       - .env.choreography-saga
     ports:
@@ -14,7 +17,10 @@ services:
   choreography-saga-inventory-worker:
     build:
       context: .
-      dockerfile: apps/choreography-saga/inventory-worker/Dockerfile
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: choreography-saga-inventory-worker
+        APP_PATH: apps/choreography-saga/inventory-worker
     env_file:
       - .env.choreography-saga
     depends_on:
@@ -24,7 +30,10 @@ services:
   choreography-saga-payment-worker:
     build:
       context: .
-      dockerfile: apps/choreography-saga/payment-worker/Dockerfile
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: choreography-saga-payment-worker
+        APP_PATH: apps/choreography-saga/payment-worker
     env_file:
       - .env.choreography-saga
     depends_on:
@@ -34,7 +43,10 @@ services:
   choreography-saga-shipping-worker:
     build:
       context: .
-      dockerfile: apps/choreography-saga/shipping-worker/Dockerfile
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: choreography-saga-shipping-worker
+        APP_PATH: apps/choreography-saga/shipping-worker
     env_file:
       - .env.choreography-saga
     depends_on:

@@ -1,0 +1,67 @@
+services:
+  order-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: order-api
+        APP_PATH: apps/base/order-api
+    env_file:
+      - .env.orchestration-saga
+    ports:
+      - "3001:3001"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  orchestration-saga-orchestrator:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: orchestration-saga-orchestrator
+        APP_PATH: apps/orchestration-saga/orchestrator
+    env_file:
+      - .env.orchestration-saga
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  orchestration-saga-inventory-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: orchestration-saga-inventory-worker
+        APP_PATH: apps/orchestration-saga/inventory-worker
+    env_file:
+      - .env.orchestration-saga
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  orchestration-saga-payment-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: orchestration-saga-payment-worker
+        APP_PATH: apps/orchestration-saga/payment-worker
+    env_file:
+      - .env.orchestration-saga
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  orchestration-saga-shipping-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+      args:
+        APP_NAME: orchestration-saga-shipping-worker
+        APP_PATH: apps/orchestration-saga/shipping-worker
+    env_file:
+      - .env.orchestration-saga
+    depends_on:
+      rabbitmq:
+        condition: service_healthy

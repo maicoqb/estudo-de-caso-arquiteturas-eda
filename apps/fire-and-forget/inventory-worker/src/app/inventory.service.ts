@@ -8,15 +8,16 @@ export class InventoryService implements OnModuleInit {
   constructor(private readonly brokerService: BrokerService) {}
 
   async onModuleInit() {
+    // Binding explícito (exchange/queue/routingKey) para fins didáticos do estudo de EDA
     await this.brokerService.subscribe(
-      'order.events',
-      'order.created.queue',
+      'fire-and-forget.order.exchange',
+      'fire-and-forget.order.created.queue',
       'order.created',
       (event) => this.handleOrderCreated(event),
     );
   }
 
-  private handleOrderCreated(event: any) {
+  private async handleOrderCreated(event: any) {
     const { orderId, items } = event.data;
     this.logger.log(`Reserving inventory for order ${orderId}`);
 
@@ -24,6 +25,17 @@ export class InventoryService implements OnModuleInit {
       this.logger.log(`  Reserved ${item.quantity}x product ${item.productId}`);
     }
 
-    // TODO: publicar evento inventory.reserved
+    await this.brokerService.publish('fire-and-forget.inventory.exchange', 'inventory.reserved', {
+      specversion: '1.0',
+      id: `inv-${orderId}`,
+      source: 'inventory-worker',
+      type: 'inventory.reserved',
+      time: new Date().toISOString(),
+      datacontenttype: 'application/json',
+      data: {
+        orderId,
+        items,
+      },
+    });
   }
 }

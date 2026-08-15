@@ -30,7 +30,7 @@ export class OrdersService {
 
     const saved = await this.ordersRepository.save(order);
 
-    await this.brokerService.publish('order.events', 'order.created', {
+    await this.brokerService.publish('fire-and-forget.order.exchange', 'order.created', {
       specversion: '1.0',
       id: saved.id,
       source: 'order-api',

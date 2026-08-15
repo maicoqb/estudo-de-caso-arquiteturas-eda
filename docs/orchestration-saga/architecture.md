@@ -27,8 +27,6 @@ graph TD
         RabbitMQ -->|schedule-shipping| Shipping
         Shipping -->|shipping.scheduled| RabbitMQ
     end
-
-    RabbitMQ -.->|falhas técnicas| DLQ[(DLQ)]
 ```
 
 ## Serviços
@@ -68,10 +66,6 @@ CREATED → RESERVING_INVENTORY → PROCESSING_PAYMENT → SCHEDULING_SHIPPING �
                 ↓                       ↓
              FAILED                  FAILED
 ```
-
-### Dead Letter Queue
-
-Mensagens que falham tecnicamente (erro de parse, timeout, etc.) vão para `<queue>.dlq`. Falhas de negócio (cartão recusado, endereço inválido) são tratadas pelo orquestrador como respostas normais.
 
 ## Estrutura do Projeto
 

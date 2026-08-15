@@ -25,8 +25,6 @@ graph LR
     RabbitMQ -->|payment.failed| Inventory
     RabbitMQ -->|payment.refunded| Inventory
     RabbitMQ -->|shipping.failed| Payment
-
-    RabbitMQ -.->|falhas após nack| DLQ[(DLQ)]
 ```
 
 ## Serviços
@@ -63,10 +61,6 @@ graph LR
 - Shipping publica `shipping.failed`
 - Payment escuta → faz refund → publica `payment.refunded`
 - Inventory escuta → libera estoque → publica `inventory.released`
-
-### Dead Letter Queue
-
-Mesma mecânica do fire-and-forget: mensagens que falham no handler (erro técnico, não de negócio) vão para `<queue>.dlq` via `<queue>.dlx`.
 
 ## Estrutura do Projeto
 

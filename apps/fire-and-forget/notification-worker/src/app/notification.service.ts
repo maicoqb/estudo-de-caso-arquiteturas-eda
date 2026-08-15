@@ -18,8 +18,12 @@ export class NotificationService implements OnModuleInit {
   }
 
   private async handlePaymentProcessed(event: any) {
-    const { orderId } = event.data;
+    const { orderId, customerId } = event.data;
     this.logger.log(`Sending notification for order ${orderId}`);
+
+    if (customerId === 'error-notification') {
+      throw new Error(`Notification service unavailable for order ${orderId}`);
+    }
 
     // Simula envio de notificação
     this.logger.log(`  Email sent to customer for order ${orderId}`);

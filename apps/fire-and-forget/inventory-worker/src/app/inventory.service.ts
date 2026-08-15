@@ -18,13 +18,14 @@ export class InventoryService implements OnModuleInit {
   }
 
   private async handleOrderCreated(event: any) {
-    const { orderId, items } = event.data;
+    const { orderId, items, customerId } = event.data;
     this.logger.log(`Reserving inventory for order ${orderId}`);
 
+    if (customerId === 'error-inventory') {
+      throw new Error(`Product out of stock for order ${orderId}`);
+    }
+
     for (const item of items) {
-      if (item.productId === 'out-of-stock') {
-        throw new Error(`Product ${item.productId} is out of stock`);
-      }
       this.logger.log(`  Reserved ${item.quantity}x product ${item.productId}`);
     }
 
@@ -35,10 +36,7 @@ export class InventoryService implements OnModuleInit {
       type: 'inventory.reserved',
       time: new Date().toISOString(),
       datacontenttype: 'application/json',
-      data: {
-        orderId,
-        items,
-      },
+      data: event.data,
     });
   }
 }

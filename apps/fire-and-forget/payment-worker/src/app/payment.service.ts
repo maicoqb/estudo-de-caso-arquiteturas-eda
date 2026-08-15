@@ -18,8 +18,12 @@ export class PaymentService implements OnModuleInit {
   }
 
   private async handleInventoryReserved(event: any) {
-    const { orderId } = event.data;
+    const { orderId, customerId } = event.data;
     this.logger.log(`Processing payment for order ${orderId}`);
+
+    if (customerId === 'error-payment') {
+      throw new Error(`Payment declined for order ${orderId}: card refused`);
+    }
 
     // Simula processamento de pagamento
     this.logger.log(`  Payment approved for order ${orderId}`);
@@ -31,9 +35,7 @@ export class PaymentService implements OnModuleInit {
       type: 'payment.processed',
       time: new Date().toISOString(),
       datacontenttype: 'application/json',
-      data: {
-        orderId,
-      },
+      data: event.data,
     });
   }
 }

@@ -4,6 +4,8 @@ import { BrokerService } from '@libs/broker';
 type SagaState =
   | 'RESERVING_INVENTORY'
   | 'PROCESSING_PAYMENT'
+  | 'SCHEDULING_SHIPPING'
+  | 'REFUNDING_PAYMENT'
   | 'RELEASING_INVENTORY'
   | 'COMPLETED'
   | 'FAILED';
@@ -22,10 +24,22 @@ const SAGA_FLOW: Record<string, Transition> = {
     nextState: 'PROCESSING_PAYMENT',
     command: 'process-payment',
   },
-  'payment.processed': { nextState: 'COMPLETED' },
+  'payment.processed': {
+    nextState: 'SCHEDULING_SHIPPING',
+    command: 'schedule-shipping',
+  },
+  'shipping.scheduled': { nextState: 'COMPLETED' },
 
   'inventory.reserve-failed': { nextState: 'FAILED' },
   'payment.failed': {
+    nextState: 'RELEASING_INVENTORY',
+    command: 'release-inventory',
+  },
+  'shipping.failed': {
+    nextState: 'REFUNDING_PAYMENT',
+    command: 'refund-payment',
+  },
+  'payment.refunded': {
     nextState: 'RELEASING_INVENTORY',
     command: 'release-inventory',
   },

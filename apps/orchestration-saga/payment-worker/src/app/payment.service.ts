@@ -14,6 +14,13 @@ export class PaymentService implements OnModuleInit {
       'process-payment',
       (event) => this.handleProcessPayment(event),
     );
+
+    await this.brokerService.subscribe(
+      'orchestration-saga.commands.exchange',
+      'orchestration-saga.refund-payment.queue',
+      'refund-payment',
+      (event) => this.handleRefundPayment(event),
+    );
   }
 
   private async handleProcessPayment(event: any) {
@@ -28,6 +35,12 @@ export class PaymentService implements OnModuleInit {
 
     this.logger.log(`  Payment approved for order ${orderId}`);
     await this.reply('payment.processed', event.data);
+  }
+
+  private async handleRefundPayment(event: any) {
+    const { orderId } = event.data;
+    this.logger.log(`⬅️ Refunding payment for order ${orderId}`);
+    await this.reply('payment.refunded', event.data);
   }
 
   private async reply(routingKey: string, data: any) {
